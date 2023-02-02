@@ -1,69 +1,89 @@
-import Fridge from './fridge'
-import Item from './item'
+import Fridge from "./fridge";
+import Item from "./item";
+import itemExpiratorChecker from "./itemExpiratorChecker";
+import expiryDateCalculator from "./expiryDateCalculator";
+import { jest } from "@jest/globals";
 
+const TODAY = new Date(2020, 1, 15);
+const EXPIRY_DATE = new Date(2021, 1, 20);
 
-import {jest} from '@jest/globals';
+describe("fridge", () => {
+  let fridge: Fridge;
+  let clock: jest.Mock<() => Date>;
 
-describe('fridge', () => {
-    let fridge: Fridge
-    let clock: jest.Mock<() => Date>
+  function newFridge(clock: jest.Mock<() => Date>) {
+    fridge = new Fridge(clock);
+    return fridge;
+  }
 
-    function newFridge(clock: jest.Mock<() => Date>) {
-        fridge = new Fridge(clock);
-        return fridge;
-    }
+  function newItem(): Item {
+    return {
+      name: "Milk",
+      expiryDate: EXPIRY_DATE,
+    };
+  }
 
+  beforeEach(() => {
+    clock = jest.fn<() => Date>(() => TODAY);
+    fridge = newFridge(clock);
+  });
+
+  it("show empty display when no items", () => {
+    const actual = fridge.display();
+
+    expect(actual).toBe("");
+  });
+
+  describe("Expired", () => {
     beforeEach(() => {
-        clock = jest.fn<() => Date>()
-        fridge = newFridge(clock);
-    })
+      jest.spyOn(expiryDateCalculator, "remainingDays").mockReturnValue(5);
+    });
 
-    it('show empty display when no items', () => {
-        const actual = fridge.display()
+    it("show expired item in display when item is expired", () => {
+      const expiredMilk: Item = newItem();
+      fridge.add(expiredMilk);
+      jest.spyOn(itemExpiratorChecker, "isExpired").mockReturnValue(true);
 
-        expect(actual).toBe('')
-    })
+      const actual = fridge.display();
 
-    function newItem(name: String, expired: boolean): Item {
-        return {
-            name: () => "Milk",
-            isExpired: () => expired
-        } 
-    }
+      expect(actual).toBe("EXPIRED: Milk");
+    });
 
-    it('show expired item in display when item is expired', () => {
-        const expiredMilk: Item = newItem("Milk", true)
-        fridge.add(expiredMilk)
+    it("dont show expired item in display when item is not expired", () => {
+      const nonExpiredMilk: Item = newItem();
+      fridge.add(nonExpiredMilk);
+      jest.spyOn(itemExpiratorChecker, "isExpired").mockReturnValue(false);
 
-        const actual = fridge.display()
+      const actual = fridge.display();
 
-        expect(actual).toBe('EXPIRED: Milk')
-    })
+      expect(actual).not.toContain("EXPIRED");
+    });
 
-    it('dont show expired item in display when item is not expired', () => {
-        const nonExpiredMilk: Item = newItem("Milk", false)
-        fridge.add(nonExpiredMilk)
+    it("item needs to know current date", () => {
+      const expiredMilk: Item = newItem();
+      const fri = newFridge(clock);
 
-        const actual = fridge.display()
+      fri.add(expiredMilk);
 
-        expect(actual).toBe('')
-    })
+      fri.display();
 
-    it('item needs to know current date', () => {
-        const today = new Date(2020, 1, 15);
-        const expiredMilk: Item = {
-            name: () => "Milk",
-            isExpired: jest.fn(() => true)
-        }
-        clock.mockReturnValue(today)
-        const fri = newFridge(clock)
+      expect(itemExpiratorChecker.isExpired).toBeCalledWith(
+        TODAY,
+        expiredMilk.expiryDate
+      );
+    });
+  });
 
-        fri.add(expiredMilk)
+  it("show remaining days", () => {
+    const todayLessFive = new Date(2021, 1, 1);
+    jest.spyOn(expiryDateCalculator, "remainingDays").mockReturnValue(5);
+    jest.spyOn(itemExpiratorChecker, "isExpired").mockReturnValue(false);
 
-        fri.display()
-
-        expect(expiredMilk.isExpired).toBeCalledWith(today)
-    })
-})
-
-
+    fridge.add({
+      name: "Milk",
+      expiryDate: todayLessFive,
+    });
+    const actual = fridge.display();
+    expect(actual).toBe("Milk: 5 days remaining");
+  });
+});

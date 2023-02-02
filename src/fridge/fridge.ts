@@ -1,29 +1,54 @@
+import expiryDateCalculator from "./expiryDateCalculator";
 import Item from "./item";
+import itemExpiratorChecker from "./itemExpiratorChecker";
 
 export default class Fridge {
+  items: Item[] = [];
+  today: Date;
 
-    items: Item[] = []
-    today: Date
+  constructor(clock: () => Date = () => new Date()) {
+    this.today = clock();
+  }
 
-    constructor(clock: () => Date = () => new Date()) {
-        this.today = clock()
+  add(item: Item): void {
+    this.items.push(item);
+  }
+
+  display(): string {
+    const expired = this.formatExpiredItems(this.expiredItems());
+    const nonExpired = this.formatNonExpiredItems(this.nonExpiredItems());
+
+    if (expired && nonExpired) {
+      return expired + "\n" + nonExpired;
     }
+    return expired + nonExpired;
+  }
 
-    display(): string {
-        return this.formatExpiredItems(this.expiredItems())
-    }
+  private isExpired = (item: Item) =>
+    itemExpiratorChecker.isExpired(this.today, item.expiryDate);
 
-    private expiredItems(): Item[] {
-        return this.items.filter(it => it.isExpired(this.today));
-    }
+  private expiredItems(): Item[] {
+    return this.items.filter(this.isExpired);
+  }
 
-    private formatExpiredItems(expiredItems: Item[]): string {
-        if(expiredItems.length == 0) return ''
-        return 'EXPIRED: ' + expiredItems.map(it => it.name()).join(", ");
-    }
+  private nonExpiredItems(): Item[] {
+    return this.items.filter((it) => !this.isExpired(it));
+  }
 
-    add(item: Item): void {
-        this.items.push(item)
-    }
+  private formatExpiredItems(expiredItems: Item[]): string {
+    if (expiredItems.length == 0) return "";
+    return "EXPIRED: " + expiredItems.map((it) => it.name).join(", ");
+  }
 
+  private formatNonExpiredItems(expiredItems: Item[]): string {
+    return expiredItems
+      .map(
+        (it) =>
+          `${it.name}: ${expiryDateCalculator.remainingDays(
+            this.today,
+            it.expiryDate
+          )} days remaining`
+      )
+      .join("\n");
+  }
 }
