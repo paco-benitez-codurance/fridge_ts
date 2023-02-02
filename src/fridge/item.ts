@@ -4,7 +4,7 @@ export default class Item {
      throw new Error("Not implemented")
     }
 
-    public isExpired(): boolean {
+    public isExpired(today: Date): boolean {
      throw new Error("Not implemented")
     }
     
