@@ -1,11 +1,12 @@
 import expiryDateCalculator from "./expiryDateCalculator";
+import formatter from "./formatter";
 import Item, { ItemName } from "./item";
 import itemExpiratorChecker from "./itemExpiratorChecker";
 
 export default class Fridge {
   items: Item[] = [];
   today: Date;
-  timesDoorOpened = new Map<ItemName, number>()
+  timesDoorOpened = new Map<ItemName, number>();
 
   constructor(clock: () => Date = () => new Date()) {
     this.today = clock();
@@ -26,7 +27,12 @@ export default class Fridge {
   }
 
   openDoor(): void {
-    this.timesDoorOpened = new Map(this.items.map(it => [it.name, (this.timesDoorOpened.get(it.name) || 0) + 1]))
+    this.timesDoorOpened = new Map(
+      this.items.map((it) => [
+        it.name,
+        (this.timesDoorOpened.get(it.name) || 0) + 1,
+      ])
+    );
   }
 
   private isExpired = (item: Item) =>
@@ -41,20 +47,18 @@ export default class Fridge {
   }
 
   private formatExpiredItems(expiredItems: Item[]): string {
-    if (expiredItems.length == 0) return "";
-    return "EXPIRED: " + expiredItems.map((it) => it.name).join(", ");
+    return formatter.formatExpiredItems(expiredItems.map((it) => it.name));
   }
 
-  private formatNonExpiredItems(expiredItems: Item[]): string {
-    return expiredItems
-      .map(
-        (it) =>
-          `${it.name}: ${expiryDateCalculator.remainingDays(
-            this.today,
-            it.expiryDate,
-            (this.timesDoorOpened.get(it.name) || 0)
-          )} days remaining`
-      )
-      .join("\n");
+  private formatNonExpiredItems(items: Item[]): string {
+    const toFormat: [ItemName, number][] = items.map((it) => [
+      it.name,
+      expiryDateCalculator.remainingDays(
+        this.today,
+        it.expiryDate,
+        this.timesDoorOpened.get(it.name) || 0
+      ),
+    ]);
+    return formatter.formatNonExpiredItems(toFormat);
   }
 }
