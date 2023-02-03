@@ -1,5 +1,5 @@
 import Fridge from './fridge'
-import Item from './item'
+import Item, { itemName } from './item'
 import itemExpiratorChecker from './itemExpiratorChecker'
 import { jest } from '@jest/globals'
 
@@ -19,7 +19,7 @@ describe('fridge aceptance', () => {
   describe('Expired Items', () => {
     it('show expired item in display when item is expired', () => {
       const expiredMilk: Item = {
-        name: 'Milk',
+        name: itemName('Milk'),
         expiryDate: EXPIRED_DATE,
         condition: 'sealed'
       }
@@ -34,7 +34,7 @@ describe('fridge aceptance', () => {
   describe('Days Reminded', () => {
     it('show remaining days', () => {
       fridge.add({
-        name: 'Milk',
+        name: itemName('Milk'),
         expiryDate: TODAY_PLUS_FIVE,
         condition: 'sealed'
       })
@@ -46,7 +46,7 @@ describe('fridge aceptance', () => {
   describe('Degradation', () => {
     it('degrade 1 hour sealed item', () => {
       fridge.add({
-        name: 'Milk',
+        name: itemName('Milk'),
         expiryDate: TODAY_PLUS_FIVE,
         condition: 'sealed'
       })

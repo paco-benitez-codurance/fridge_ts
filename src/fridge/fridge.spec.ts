@@ -1,5 +1,5 @@
 import Fridge from "./fridge"
-import Item from "./item"
+import Item, { itemName } from "./item"
 import itemExpiratorChecker from "./itemExpiratorChecker"
 import expiryDateCalculator from "./expiryDateCalculator"
 import { jest } from "@jest/globals"
@@ -18,7 +18,7 @@ describe("fridge", () => {
 
   function newItem(): Item {
     return {
-      name: "Milk",
+      name: itemName("Milk"),
       expiryDate: EXPIRY_DATE,
       condition: "sealed",
     }
@@ -121,7 +121,7 @@ describe("fridge", () => {
       jest.spyOn(itemExpiratorChecker, "isExpired").mockReturnValue(false)
 
       fridge.add({
-        name: "Milk",
+        name: itemName("Milk"),
         expiryDate: todayLessFive,
         condition: "sealed",
       })

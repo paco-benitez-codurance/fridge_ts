@@ -1,11 +1,11 @@
 import expiryDateCalculator from "./expiryDateCalculator";
-import Item from "./item";
+import Item, { ItemName } from "./item";
 import itemExpiratorChecker from "./itemExpiratorChecker";
 
 export default class Fridge {
   items: Item[] = [];
   today: Date;
-  timesDoorOpened = new Map<string, number>()
+  timesDoorOpened = new Map<ItemName, number>()
 
   constructor(clock: () => Date = () => new Date()) {
     this.today = clock();
