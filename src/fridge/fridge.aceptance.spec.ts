@@ -21,6 +21,7 @@ describe('fridge aceptance', () => {
       const expiredMilk: Item = {
         name: 'Milk',
         expiryDate: EXPIRED_DATE,
+        condition: 'sealed'
       }
       fridge.add(expiredMilk)
 
@@ -35,9 +36,29 @@ describe('fridge aceptance', () => {
       fridge.add({
         name: 'Milk',
         expiryDate: TODAY_PLUS_FIVE,
+        condition: 'sealed'
       })
       const actual = fridge.display()
       expect(actual).toBe('Milk: 5 days remaining')
     })
+  })
+
+  describe('Degradation', () => {
+    it('degrade 1 hour sealed item', () => {
+      fridge.add({
+        name: 'Milk',
+        expiryDate: TODAY_PLUS_FIVE,
+        condition: 'sealed'
+      })
+
+      for(let i = 0; i < 24; i++) {
+        fridge.openDoor()
+      }
+
+      const actual = fridge.display()
+
+      expect(actual).toBe('Milk: 4 days remaining')
+    })
+
   })
 })

@@ -5,6 +5,7 @@ import itemExpiratorChecker from "./itemExpiratorChecker";
 export default class Fridge {
   items: Item[] = [];
   today: Date;
+  timesDoorOpened = new Map<string, number>()
 
   constructor(clock: () => Date = () => new Date()) {
     this.today = clock();
@@ -22,6 +23,10 @@ export default class Fridge {
       return expired + "\n" + nonExpired;
     }
     return expired + nonExpired;
+  }
+
+  openDoor(): void {
+    this.timesDoorOpened = new Map(this.items.map(it => [it.name, (this.timesDoorOpened.get(it.name) || 0) + 1]))
   }
 
   private isExpired = (item: Item) =>
@@ -46,7 +51,8 @@ export default class Fridge {
         (it) =>
           `${it.name}: ${expiryDateCalculator.remainingDays(
             this.today,
-            it.expiryDate
+            it.expiryDate,
+            (this.timesDoorOpened.get(it.name) || 0)
           )} days remaining`
       )
       .join("\n");
